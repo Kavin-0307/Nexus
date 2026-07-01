@@ -1,15 +1,8 @@
 package com.nexus.entity;
 import jakarta.persistence.*;
-
-
-import com.nexus.enums.DocumentType;
-
 import java.time.LocalDateTime;
-
-import org.hibernate.annotations.Generated;
-
-
 @Entity
+@Table(name="documents")
 public class Document {
 	@Id
 	@GeneratedValue(strategy=GenerationType.IDENTITY)
@@ -17,8 +10,8 @@ public class Document {
 	
 	@Column(name="document_name")
 	private String documentName;
-	@Lob
-	@Column(name="document_content")
+	
+	@Column(name="document_content",columnDefinition="TEXT")
 	private String documentContent;
 	
 	@Column(name="document_updated_at")

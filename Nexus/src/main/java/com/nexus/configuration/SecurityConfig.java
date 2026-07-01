@@ -22,8 +22,10 @@ public class SecurityConfig {
 	private final JwtAuthenticationFilter jwtAuthenticationFilter;
 	private final CustomUserDetailsService userDetailsService;
 	public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter,CustomUserDetailsService userDetailsService) {
+		System.out.println("SECURITY CONFIG LOADED");
 		this.userDetailsService=userDetailsService;
 		this.jwtAuthenticationFilter=jwtAuthenticationFilter;
+		
 		
 	}
 	@Bean
@@ -36,11 +38,12 @@ public class SecurityConfig {
 }
 	@Bean 
 	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception{
+		System.out.println("Custome filter chain");
 		http.csrf(csrf->csrf.disable())
 		.cors(cors->{})
 		.sessionManagement(session->session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-		.authorizeHttpRequests(auth->auth.requestMatchers("/api/auth/register","/api/auth/login").
-				permitAll().requestMatchers("/api/auth/**").permitAll()
+		.authorizeHttpRequests(auth->auth.requestMatchers("/nexus/auth/register","/nexus/auth/login").
+				permitAll().requestMatchers("/nexus/auth/**").permitAll()
 		.anyRequest().authenticated())
 		.authenticationProvider(authenticationProvider())
 		.addFilterBefore(jwtAuthenticationFilter,UsernamePasswordAuthenticationFilter.class);

@@ -1,7 +1,11 @@
 package com.nexus.configuration;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
 
 import com.nexus.dtos.AuthResponseDTO;
 import com.nexus.dtos.LoginRequestDTO;
@@ -9,7 +13,7 @@ import com.nexus.dtos.RegisterRequestDTO;
 import com.nexus.entity.User;
 import com.nexus.repository.UserRepository;
 import com.nexus.services.JwtService;
-
+@Service
 public class AuthService {
 	private final UserRepository userRepository;
 	private final PasswordEncoder passwordEncoder;
@@ -57,6 +61,14 @@ public class AuthService {
 	}
 	private AuthResponseDTO convertToResponseDTO(User user,String token) {
 		return new AuthResponseDTO(user.getUserId(),user.getUserName(),user.getUserEmail(),token);
+	}
+	public User getCurrentUser() {
+		Authentication authentication=SecurityContextHolder.getContext().getAuthentication();
+
+		String email = authentication.getName();
+
+		User currentUser = userRepository.findByUserEmail(email).orElseThrow(() -> new UsernameNotFoundException("User not found"));
+		return currentUser;
 	}
 	
 }

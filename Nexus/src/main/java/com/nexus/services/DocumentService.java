@@ -20,9 +20,9 @@ public class DocumentService {
 		this.userRepository=userRepository;
 		this.documentRepository=documentRepository;
 	}
-	public DocumentResponseDTO createDocument(DocumentRequestDTO dto,Long userId)  {
-		User user=userRepository.findById(userId).orElseThrow(()->new IllegalArgumentException("The user does not exist"));
+	public DocumentResponseDTO createDocument(DocumentRequestDTO dto,String email)  {
 		
+		User user=getUserByEmail(email);
 		Document document=new Document();
 		
 		document.setUser(user);
@@ -31,15 +31,16 @@ public class DocumentService {
 		Document savedDocument = documentRepository.save(document);
 		return convertToResponseDTO(savedDocument);
 	}
-	public List<DocumentResponseDTO> getAllDocuments(Long userId){
-		User user=userRepository.findById(userId).orElseThrow(()->new IllegalArgumentException("User not found"));
-		return documentRepository.findByUserUserId(userId).stream().map(this::convertToResponseDTO).toList();
+	public List<DocumentResponseDTO> getAllDocuments(String email){
+		User user=getUserByEmail(email);
+		return documentRepository.findByUserUserId(user.getUserId()).stream().map(this::convertToResponseDTO).toList();
 		
 	}
 	//Maybe this can be used as the way to finally update the document when everything is closing down. It wont make sense to use this for the normal editor work
-	public DocumentResponseDTO updateDocument(Long documentId,DocumentRequestDTO dto,Long userId) {
+	public DocumentResponseDTO updateDocument(Long documentId,DocumentRequestDTO dto,String email) {
+		User user=getUserByEmail(email);
 	    Document document = documentRepository.findById(documentId).orElseThrow(()->new IllegalArgumentException("Document not found"));
-	    if (!document.getUser().getUserId().equals(userId)) {
+	    if (!document.getUser().getUserId().equals(user.getUserId())) {
 	        throw new IllegalArgumentException("You are not authorized to edit this document");
 	    }
 	    document.setDocumentName(dto.getDocumentName());
@@ -49,18 +50,20 @@ public class DocumentService {
 	}
 	
 	
-	public DocumentResponseDTO getDocumentById(Long documentId, Long userId) {
+	public DocumentResponseDTO getDocumentById(Long documentId,String email) {
+		User user=getUserByEmail(email);
 	    Document document = documentRepository.findById(documentId).orElseThrow(()->new IllegalArgumentException("Document not found"));
-	    if (!document.getUser().getUserId().equals(userId)) {
+	    if (!document.getUser().getUserId().equals(user.getUserId())) {
 	        throw new IllegalArgumentException(
 	                "You are not authorized to view this document");
 	    }
 	    return convertToResponseDTO(document);
 	}
 	
-	public void deleteDocument(Long documentId, Long userId) {
+	public void deleteDocument(Long documentId, String email) {
+		User user=getUserByEmail(email);
 	    Document document = documentRepository.findById(documentId).orElseThrow(()->new IllegalArgumentException("Document not found"));
-	    if (!document.getUser().getUserId().equals(userId)) {
+	    if (!document.getUser().getUserId().equals(user.getUserId())) {
 	        throw new IllegalArgumentException("You are not authorized to delete this document");
 	    }
 	    documentRepository.delete(document);
@@ -74,6 +77,9 @@ public class DocumentService {
 	            doc.getCreatedAt(),
 	            doc.getUpdatedAt()
 	    );
+	}
+	private User getUserByEmail(String email) {
+		return userRepository.findByUserEmail(email).orElseThrow(()->new IllegalArgumentException("User not found"));
 	}
 	
 	

@@ -1,14 +1,13 @@
-
 CREATE TABLE documents (
     document_id BIGSERIAL PRIMARY KEY,
 
     document_name VARCHAR(255) NOT NULL,
 
-    content TEXT,
+    document_content TEXT,
 
     created_at TIMESTAMP NOT NULL,
 
-    updated_at TIMESTAMP,
+    document_updated_at TIMESTAMP,
 
     user_id BIGINT NOT NULL,
 

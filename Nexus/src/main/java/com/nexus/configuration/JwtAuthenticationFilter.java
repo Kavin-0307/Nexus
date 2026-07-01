@@ -34,7 +34,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter{
 	protected boolean shouldNotFilter(HttpServletRequest request) {
 		String path=request.getServletPath();
 		String method=request.getMethod();
-		return path.startsWith("/api/auth");
+		return path.startsWith("/nexus/auth");
 	}
 	@Override
 	protected void doFilterInternal(HttpServletRequest request,HttpServletResponse response,FilterChain filterChain) throws ServletException,IOException{
