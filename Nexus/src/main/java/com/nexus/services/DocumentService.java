@@ -106,7 +106,8 @@ public class DocumentService {
 	    return new DocumentResponseDTO(
 	            doc.getDocumentId(),
 	            doc.getDocumentName(),
-	            doc.getDocumentContent(),
+	            doc.getDocumentType(),
+	            doc.getProcessingStatus(),
 	            doc.getCreatedAt(),
 	            doc.getUpdatedAt()
 	    );
