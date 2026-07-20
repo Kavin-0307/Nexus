@@ -2,6 +2,7 @@ package com.nexus.services;
 
 
 import org.springframework.stereotype.Service;
+import org.springframework.web.reactive.function.client.WebClient;
 
 import com.nexus.dtos.DocumentRequestDTO;
 import com.nexus.dtos.DocumentResponseDTO;
@@ -15,13 +16,19 @@ import java.util.stream.Stream;
 import com.nexus.entity.Document;
 import com.nexus.entity.User;
 import com.nexus.enums.CollaborationRole;
+import com.nexus.enums.ProcessingStatus;
+import com.nexus.events.DocumentUploadEvent;
 @Service
 public class DocumentService {
 	private final UserRepository userRepository;
 	private final CollaboratorRepository collaboratorRepository ;
 	private final DocumentRepository documentRepository;
-	public DocumentService(CollaboratorRepository collaboratorRepository,UserRepository userRepository,DocumentRepository documentRepository) {
+	private final WebClient webClient;
+	private final RedisStreamService redisStreamService;
+	public DocumentService(RedisStreamService redisStreamService,WebClient webClient,CollaboratorRepository collaboratorRepository,UserRepository userRepository,DocumentRepository documentRepository) {
 		this.userRepository=userRepository;
+		this.webClient=webClient;
+		this.redisStreamService=redisStreamService;
 		this.collaboratorRepository=collaboratorRepository;
 
 		this.documentRepository=documentRepository;
@@ -35,6 +42,8 @@ public class DocumentService {
 		document.setDocumentName(dto.getDocumentName());
 		document.setDocumentContent(dto.getDocumentContent());
 		Document savedDocument = documentRepository.save(document);
+		DocumentUploadEvent event=new DocumentUploadEvent(savedDocument.getDocumentId(),savedDocument.getDocumentType(),user.getUserId());
+		redisStreamService.publishUpload(event);
 		return convertToResponseDTO(savedDocument);
 	}
 	public List<DocumentResponseDTO> getAllDocuments(String email){
@@ -55,7 +64,13 @@ public class DocumentService {
 	    Document updatedDocument =documentRepository.save(document);
 	    return convertToResponseDTO(updatedDocument);
 	}
-	
+	public ProcessingStatus getProcessingStatus(Long documentId, String email) {
+	    User user = getUserByEmail(email);
+	    Document document = documentRepository.findById(documentId)
+	        .orElseThrow(() -> new IllegalArgumentException("Not found"));
+	    if (!canView(document, user)) throw new IllegalArgumentException("Unauthorized");
+	    return document.getProcessingStatus();
+	}
 	
 	public DocumentResponseDTO getDocumentById(Long documentId,String email) {
 		User user=getUserByEmail(email);

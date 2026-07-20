@@ -2,17 +2,19 @@ package com.nexus.events;
 
 import java.nio.file.Path;
 
+import com.nexus.enums.DocumentType;
+
 public class DocumentUploadEvent {
 	private final Long documentId;
 	private final Long userId;
-	private final String filePath;
-	public DocumentUploadEvent(Long documentId,String filePath ,Long userId) {
-		this.filePath=filePath;
+	private final DocumentType documentType;
+	public DocumentUploadEvent(Long documentId,DocumentType documentType ,Long userId) {
+		this.documentType=documentType;
 		this.documentId=documentId;
 		this.userId=userId;
 	}
-	public String getFilePath() {
-		return filePath;
+	public DocumentType getDocumentType() {
+		return documentType;
 		
 	}
 	public Long getDocumentId() {
@@ -21,6 +23,5 @@ public class DocumentUploadEvent {
 	public Long getUserId() {
 		return userId;
 	}
-	
 
 }

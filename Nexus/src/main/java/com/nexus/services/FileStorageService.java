@@ -13,6 +13,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.UUID;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
@@ -23,8 +24,10 @@ public class FileStorageService {
 	private static final long MAX_FILE_SIZE = 20 * 1024 * 1024; //20 MB for now but can be increased later
 	private final Path directoryPath;
 	private final Path documentPath;
+	@Value("${storage.base-path}")
+	private String basePath;
 	public FileStorageService() {
-		 directoryPath=Paths.get("D:/NEXUS_FILES");
+		 directoryPath=Paths.get(basePath);
 		 documentPath=Paths.get("D:/NEXUS_FILES/documents");
 		 createDirectory();
 	}

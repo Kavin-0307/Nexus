@@ -23,7 +23,7 @@ public class RedisStreamService {
 		Map<String,String> map=new HashMap<>();
 		map.put("documentId",documentUploadEvent.getDocumentId().toString());
 		map.put("userId",documentUploadEvent.getUserId().toString());
-		map.put("filePath",documentUploadEvent.getFilePath());
+		map.put("documentType",documentUploadEvent.getDocumentType().toString());
 		map.put("timestamp",String.valueOf(System.currentTimeMillis()));
 		String streamKey="stream:document:uploads";
 		StreamEntryID res=jedis.xadd(streamKey,StreamEntryID.NEW_ENTRY,map);
