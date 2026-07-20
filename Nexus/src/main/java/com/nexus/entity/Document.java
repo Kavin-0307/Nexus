@@ -38,10 +38,17 @@ public class Document {
 	    createdAt = LocalDateTime.now();
 	    updatedAt = LocalDateTime.now();
 	}
-
+	@Column(name="file_path")
+	private String filePath;
 	@PreUpdate
 	protected void onUpdate() {
 	    updatedAt = LocalDateTime.now();
+	}
+	public void setFilePath(String filePath) {
+		this.filePath=filePath;
+	}
+	public String getFilePath() {
+		return filePath;
 	}
 	public void setDocumentType(DocumentType documentType) {
 		this.documentType=documentType;

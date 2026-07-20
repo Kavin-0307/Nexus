@@ -1,5 +1,6 @@
 package com.nexus.controller;
 
+import java.io.IOException;
 import java.util.List;
 
 import org.springframework.http.HttpStatus;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.nexus.dtos.DocumentRequestDTO;
 import com.nexus.dtos.DocumentResponseDTO;
@@ -36,6 +38,11 @@ public class DocumentController {
 	public ResponseEntity<DocumentResponseDTO> createDocument(@RequestBody DocumentRequestDTO dto,Authentication authentication){
 		DocumentResponseDTO response=documentService.createDocument(dto,authentication.getName());
 		return ResponseEntity.status(HttpStatus.CREATED).body(response);
+	}
+	@PostMapping("/nexus/document/upload")
+	public ResponseEntity<DocumentResponseDTO> uploadDocument(@RequestParam("file") MultipartFile file,Authentication authentication) throws IOException{
+		DocumentResponseDTO response=documentService.uploadDocument(file,authentication.getName());
+		return ResponseEntity.status(HttpStatus.ACCEPTED).body(response);
 	}
 	@GetMapping("/internal/documents/{id}/content")
 	public ResponseEntity<String> getDocumentContent(@PathVariable Long id){

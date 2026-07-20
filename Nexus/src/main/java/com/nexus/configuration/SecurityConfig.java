@@ -44,6 +44,7 @@ public class SecurityConfig {
 		.sessionManagement(session->session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 		.authorizeHttpRequests(auth->auth.requestMatchers("/nexus/auth/register","/nexus/auth/login").
 				permitAll().requestMatchers("/nexus/auth/**").permitAll()
+				.requestMatchers("/internal/**").permitAll()
 		.anyRequest().authenticated())
 		.authenticationProvider(authenticationProvider())
 		.addFilterBefore(jwtAuthenticationFilter,UsernamePasswordAuthenticationFilter.class);

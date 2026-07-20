@@ -2,6 +2,7 @@ package com.nexus.services;
 
 
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import com.nexus.dtos.DocumentRequestDTO;
@@ -12,10 +13,15 @@ import com.nexus.repository.UserRepository;
 
 import java.util.List;
 import java.util.stream.Stream;
+import java.io.IOException;
+import java.nio.file.Path;
+
+
 
 import com.nexus.entity.Document;
 import com.nexus.entity.User;
 import com.nexus.enums.CollaborationRole;
+import com.nexus.enums.DocumentType;
 import com.nexus.enums.ProcessingStatus;
 import com.nexus.events.DocumentUploadEvent;
 @Service
@@ -24,9 +30,11 @@ public class DocumentService {
 	private final CollaboratorRepository collaboratorRepository ;
 	private final DocumentRepository documentRepository;
 	private final WebClient webClient;
+	private final FileStorageService fileStorageService;
 	private final RedisStreamService redisStreamService;
-	public DocumentService(RedisStreamService redisStreamService,WebClient webClient,CollaboratorRepository collaboratorRepository,UserRepository userRepository,DocumentRepository documentRepository) {
+	public DocumentService(FileStorageService fileStorageService,RedisStreamService redisStreamService,WebClient webClient,CollaboratorRepository collaboratorRepository,UserRepository userRepository,DocumentRepository documentRepository) {
 		this.userRepository=userRepository;
+		this.fileStorageService=fileStorageService;
 		this.webClient=webClient;
 		this.redisStreamService=redisStreamService;
 		this.collaboratorRepository=collaboratorRepository;
@@ -41,6 +49,9 @@ public class DocumentService {
 		document.setUser(user);
 		document.setDocumentName(dto.getDocumentName());
 		document.setDocumentContent(dto.getDocumentContent());
+		document.setDocumentType(DocumentType.TYPED);
+		document.setProcessingStatus(ProcessingStatus.PENDING);
+		document.setFilePath(null);
 		Document savedDocument = documentRepository.save(document);
 		DocumentUploadEvent event=new DocumentUploadEvent(savedDocument.getDocumentId(),savedDocument.getDocumentType(),user.getUserId());
 		redisStreamService.publishUpload(event);
@@ -119,6 +130,26 @@ public class DocumentService {
 	private boolean canEdit(Document document,User user) {
 		if(isOwner(document,user))return true;
 		return collaboratorRepository.findByDocumentDocumentIdAndUserUserId(document.getDocumentId(),user.getUserId()).map(c->c.getCollaborationRole()==CollaborationRole.EDITOR).orElse(false);
+	}
+	public DocumentResponseDTO uploadDocument(MultipartFile file, String email)throws IOException {
+		User user=getUserByEmail(email);
+		Path storedFile=fileStorageService.saveUploadedFile(file);
+		String extractedText=fileStorageService.extractText(storedFile);
+		Document document=new Document();
+		document.setUser(user);
+		document.setDocumentName(file.getOriginalFilename());
+	    document.setFilePath(storedFile.toString());
+
+	    document.setDocumentContent(extractedText);
+	    document.setDocumentType(DocumentType.PDF);
+	    document.setProcessingStatus(ProcessingStatus.PENDING);
+	    Document savedDocument=documentRepository.save(document);
+	    DocumentUploadEvent event=new DocumentUploadEvent(savedDocument.getDocumentId(),savedDocument.getDocumentType(),user.getUserId());
+	    redisStreamService.publishUpload(event);
+
+	    return convertToResponseDTO(savedDocument);
+
+		
 	}
 	
 	
